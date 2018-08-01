@@ -8,9 +8,9 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface Api {
-    @GET("types=(cities)&components=country:kz")
+    @GET("json?types=(cities)&components=country:kz")
     Observable<CityWrapper> getCityByName(@Query("input") String input);
 
-    @GET("units=metric&lang=ru")
+    @GET("weather?units=metric&lang=ru")
     Observable<WeatherWrapper> getWeatherByCity(@Query("q") String cityName);
 }

@@ -11,10 +11,11 @@ import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiService {
-    private static final String PLACE_ENDPOINT = "https://maps.googleapis.com/maps/api/place/autocomplete/json?";
-    private static final String WEATHER_ENDPOINT = "api.openweathermap.org/data/2.5/weather?";
+    private static final String PLACE_ENDPOINT = "https://maps.googleapis.com/maps/api/place/autocomplete/";
+    private static final String WEATHER_ENDPOINT = "http://api.openweathermap.org/data/2.5/";
     private static final String PLACE_API_KEY = "AIzaSyAJI-ukD17BKPMkgyxMpvqeC0989fsu4n4";
     private static final String WEATHER_API_KEY = "97e3af460c0f73bdedc8a1f25f6dde7f";
     private static final int CONNECT_TIMEOUT_IN_MS = 10000;
@@ -68,8 +69,10 @@ public class ApiService {
         return new Retrofit
                 .Builder()
                 .baseUrl(baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .client(client)
-                .build().create(Api.class);
+                .build()
+                .create(Api.class);
     }
 }
