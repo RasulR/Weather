@@ -1,8 +1,14 @@
 package com.example.user.weatherapp.network;
 
+import android.app.VoiceInteractor;
+
+import com.example.user.weatherapp.WeatherApp;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Cache;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -46,19 +52,14 @@ public class ApiService {
         }
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        Interceptor requestInterceptor = new Interceptor() {
-            @Override
-            public Response intercept(Chain chain) throws IOException {
-                Request original = chain.request();
-                HttpUrl originalHttpUrl = original.url();
-
-                HttpUrl url = originalHttpUrl.newBuilder()
-                        .addQueryParameter(queryParameter, apiKey)
-                        .build();
-
-                Request request = original.newBuilder().url(url).build();
-                return chain.proceed(request);
-            }
+        Interceptor requestInterceptor = chain -> {
+            Request original = chain.request();
+            HttpUrl originalHttpUrl = original.url();
+            HttpUrl url = originalHttpUrl.newBuilder()
+                    .addQueryParameter(queryParameter, apiKey)
+                    .build();
+            Request request = original.newBuilder().url(url).build();
+            return chain.proceed(request);
         };
         OkHttpClient client = new okhttp3.OkHttpClient.Builder()
                 .connectTimeout(CONNECT_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS)
