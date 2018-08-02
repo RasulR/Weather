@@ -3,6 +3,8 @@ package com.example.user.weatherapp;
 import android.app.Application;
 import android.arch.persistence.room.Room;
 
+import com.example.user.weatherapp.db.WeatherDatabase;
+
 public class WeatherApp extends Application {
 
     private static WeatherApp instance;

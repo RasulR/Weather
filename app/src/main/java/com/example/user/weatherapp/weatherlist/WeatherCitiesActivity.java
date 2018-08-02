@@ -22,7 +22,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class WeatherCitiesActivity extends AppCompatActivity implements WeatherCitiesView {
+public class WeatherCitiesActivity extends AppCompatActivity implements WeatherCitiesView,
+        TextWatcher {
 
     @BindView(R.id.rootLayout)
     View rootLayout;
@@ -42,29 +43,11 @@ public class WeatherCitiesActivity extends AppCompatActivity implements WeatherC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        presenter = new WeatherCitiesPresenter(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new WeatherListAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
         handler = new Handler();
-        presenter = new WeatherCitiesPresenter(this);
-        edSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(final Editable editable) {
-                if (editable.length() > 2) {
-                    handler.postDelayed(() -> presenter.findCities(editable.toString()), 300);
-                }
-            }
-        });
     }
 
     @Override
@@ -79,18 +62,45 @@ public class WeatherCitiesActivity extends AppCompatActivity implements WeatherC
     }
 
     @Override
-    public void showError(String errorMessage) {
+    public void hideProgress() {
         progressBar.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showError(String errorMessage) {
         Snackbar.make(rootLayout, errorMessage, Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
     public void showWeatherList(List<Weather> weathers) {
-        progressBar.setVisibility(View.GONE);
-        WeatherDiffUtilCallback weatherDiffUtilCallback = new WeatherDiffUtilCallback(adapter.getData(), weathers);
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(weatherDiffUtilCallback);
+//        WeatherDiffUtilCallback weatherDiffUtilCallback = new WeatherDiffUtilCallback(adapter.getData(), weathers);
+//        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(weatherDiffUtilCallback);
         adapter.setData(weathers);
-        diffResult.dispatchUpdatesTo(adapter);
+        adapter.notifyDataSetChanged();
+//        diffResult.dispatchUpdatesTo(adapter);
+    }
+
+    @Override
+    public void listenInputAndSetText(String savedInput) {
+        edSearch.setText(savedInput);
+        edSearch.addTextChangedListener(this);
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        if (editable.length() > 2) {
+            handler.postDelayed(() -> presenter.findCities(editable.toString()), 300);
+        }
     }
 
     private class WeatherDiffUtilCallback extends DiffUtil.Callback {

@@ -58,8 +58,12 @@ public class WeatherCitiesInteractor {
         return Completable.fromAction(() -> weatherDao.deleteAllWeathers());
     }
 
-    public Observable<List<WeatherEntity>> getAllWeathersLastHour(long lastHourDate) {
+    public Single<List<WeatherEntity>> getAllWeathersLastHour(long lastHourDate) {
         return weatherDao.getAllWeathersLastHour(lastHourDate);
+    }
+
+    public Single<List<WeatherEntity>> getAll() {
+        return weatherDao.getAll();
     }
 
 }

@@ -9,6 +9,7 @@ import com.example.user.weatherapp.db.entity.WeatherEntity;
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.Single;
 
 @Dao
 public interface WeatherDao {
@@ -20,5 +21,8 @@ public interface WeatherDao {
     void deleteAllWeathers();
 
     @Query("SELECT * FROM WeatherEntity where fetchedDate >= :lastHourDate")
-    Observable<List<WeatherEntity> > getAllWeathersLastHour(long lastHourDate);
+    Single<List<WeatherEntity> > getAllWeathersLastHour(long lastHourDate);
+
+    @Query("SELECT * FROM weatherentity")
+    Single<List<WeatherEntity>> getAll();
 }

@@ -1,4 +1,4 @@
-package com.example.user.weatherapp;
+package com.example.user.weatherapp.db;
 
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.RoomDatabase;
