@@ -1,4 +1,7 @@
 <resources>
-    <string name="app_name">WeatherApp</string>
+    <string name="app_name">Погода Казахстана</string>
     <string name="input_city_name">Введите название города</string>
+    <string name="degree_fmt">Темепратура %1$s \u00b0</string>
+    <string name="humidity_fmt">Влажность %1$d %%</string>
+    <string name="pressure_fmt">Давление %1$s мм рт. ст.</string>
 </resources>

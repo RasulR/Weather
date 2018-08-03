@@ -1,5 +1,6 @@
 package com.example.user.weatherapp.weatherlist;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -24,7 +25,8 @@ public class WeatherListAdapter extends RecyclerView.Adapter<WeatherListAdapter.
     }
 
     public void setData(List<Weather> weathers) {
-        weatherList = weathers;
+        weatherList.clear();
+        weatherList.addAll(weathers);
     }
 
     public List<Weather> getData() {
@@ -40,11 +42,12 @@ public class WeatherListAdapter extends RecyclerView.Adapter<WeatherListAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Context context = holder.itemView.getContext();
         Weather weather = weatherList.get(position);
         holder.tvCityName.setText(weather.getCityName());
-        holder.tvTemp.setText(String.valueOf(weather.getTemperature()));
-        holder.tvHumidity.setText(String.valueOf(weather.getHumidity()));
-        holder.tvPressure.setText(String.valueOf(weather.getPressure()));
+        holder.tvTemp.setText(context.getString(R.string.degree_fmt, weather.getTemperature()));
+        holder.tvHumidity.setText(context.getString(R.string.humidity_fmt, weather.getHumidity()));
+        holder.tvPressure.setText(context.getString(R.string.pressure_fmt, weather.getPressure()));
     }
 
     @Override

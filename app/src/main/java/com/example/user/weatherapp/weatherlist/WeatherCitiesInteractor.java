@@ -9,14 +9,12 @@ import com.example.user.weatherapp.db.entity.WeatherEntity;
 import com.example.user.weatherapp.network.ApiService;
 import com.example.user.weatherapp.network.dto.CityResponseWrapper;
 import com.example.user.weatherapp.network.dto.WeatherResponseWrapper;
-import com.example.user.weatherapp.weatherlist.model.Weather;
 
 import java.util.List;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.functions.Action;
 
 public class WeatherCitiesInteractor {
 
@@ -33,11 +31,11 @@ public class WeatherCitiesInteractor {
     }
 
     public Observable<WeatherResponseWrapper> getWeatherByCityName(String cityName) {
-        return ApiService.getApi(false).getWeatherByCity(cityName);
+        return ApiService.getApi(false).getWeatherByCity(cityName + ",kz");
     }
 
-    public Completable insertAllWeathers(List<WeatherEntity> weatherList) {
-        return Completable.fromAction(() -> weatherDao.insertAll(weatherList));
+    public Long[] insertAllWeathers(List<WeatherEntity> weatherList) {
+         return weatherDao.insertAll(weatherList);
     }
 
     public Completable saveInputString(String input) {
@@ -61,9 +59,4 @@ public class WeatherCitiesInteractor {
     public Single<List<WeatherEntity>> getAllWeathersLastHour(long lastHourDate) {
         return weatherDao.getAllWeathersLastHour(lastHourDate);
     }
-
-    public Single<List<WeatherEntity>> getAll() {
-        return weatherDao.getAll();
-    }
-
 }

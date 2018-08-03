@@ -1,10 +1,11 @@
 package com.example.user.weatherapp.weatherlist;
 
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.util.DiffUtil;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -45,6 +46,7 @@ public class WeatherCitiesActivity extends AppCompatActivity implements WeatherC
         ButterKnife.bind(this);
         presenter = new WeatherCitiesPresenter(this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         adapter = new WeatherListAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
         handler = new Handler();
@@ -73,11 +75,10 @@ public class WeatherCitiesActivity extends AppCompatActivity implements WeatherC
 
     @Override
     public void showWeatherList(List<Weather> weathers) {
-//        WeatherDiffUtilCallback weatherDiffUtilCallback = new WeatherDiffUtilCallback(adapter.getData(), weathers);
-//        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(weatherDiffUtilCallback);
+        WeatherDiffUtilCallback weatherDiffUtilCallback = new WeatherDiffUtilCallback(adapter.getData(), weathers);
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(weatherDiffUtilCallback);
+        diffResult.dispatchUpdatesTo(adapter);
         adapter.setData(weathers);
-        adapter.notifyDataSetChanged();
-//        diffResult.dispatchUpdatesTo(adapter);
     }
 
     @Override
@@ -98,8 +99,9 @@ public class WeatherCitiesActivity extends AppCompatActivity implements WeatherC
 
     @Override
     public void afterTextChanged(Editable editable) {
-        if (editable.length() > 2) {
-            handler.postDelayed(() -> presenter.findCities(editable.toString()), 300);
+        String input = editable.toString().trim();
+        if (input.length() > 2) {
+            handler.postDelayed(() -> presenter.findCities(input), 300);
         }
     }
 
@@ -127,14 +129,14 @@ public class WeatherCitiesActivity extends AppCompatActivity implements WeatherC
         @Override
         public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
             Weather oldWeather = oldList.get(oldItemPosition);
-            Weather newWeather = oldList.get(newItemPosition);
+            Weather newWeather = newList.get(newItemPosition);
             return oldWeather == newWeather;
         }
 
         @Override
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
             Weather oldWeather = oldList.get(oldItemPosition);
-            Weather newWeather = oldList.get(newItemPosition);
+            Weather newWeather = newList.get(newItemPosition);
             return oldWeather.equals(newWeather);
         }
     }

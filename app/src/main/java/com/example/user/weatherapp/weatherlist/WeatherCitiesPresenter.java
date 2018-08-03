@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.user.weatherapp.db.entity.WeatherEntity;
 import com.example.user.weatherapp.network.dto.CityResponseWrapper;
+import com.example.user.weatherapp.weatherlist.model.Weather;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,17 +13,14 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.BiFunction;
 import io.reactivex.schedulers.Schedulers;
 
-import com.example.user.weatherapp.weatherlist.model.Weather;
-
 public class WeatherCitiesPresenter {
-    private static final int HOUR_IN_MS = 1000 * 60;
+    private static final int HOUR_IN_MS = 1000 * 60 * 60;
 
     private WeatherCitiesView view;
     private CompositeDisposable disposables;
-    private Disposable cityAndWeatherDisposable;
+    private Disposable weatherDisposable;
     private WeatherCitiesInteractor weatherCitiesInteractor;
 
     private List<Weather> weatherList;
@@ -33,37 +31,47 @@ public class WeatherCitiesPresenter {
         weatherList = new ArrayList<>();
         weatherCitiesInteractor = new WeatherCitiesInteractor();
         getAllWeathersLastHour();
-        f();
     }
 
     public void findCities(String input) {
         view.showProgress();
         weatherList.clear();
-        if (cityAndWeatherDisposable != null) {
-            disposables.delete(cityAndWeatherDisposable);
+        if (weatherDisposable != null) {
+            disposables.delete(weatherDisposable);
         }
-        cityAndWeatherDisposable = weatherCitiesInteractor.findCityByName(input)
+        disposables.add(weatherCitiesInteractor.findCityByName(input)
                 .takeWhile(cityResponseWrapper -> cityResponseWrapper.getMainInfoList() != null)
                 .map(CityResponseWrapper::getMainInfoList)
-                .flatMap(Observable::fromIterable)
-                .map(CityResponseWrapper.MainInfo::getCity)
-                .flatMap(city -> weatherCitiesInteractor.getWeatherByCityName(city.getName()))
-                .map(weatherResponseWrapper -> new Weather(weatherResponseWrapper.getCityName(),
-                        weatherResponseWrapper.getWeather().getTemperature(),
-                        weatherResponseWrapper.getWeather().getHumidity(),
-                        weatherResponseWrapper.getWeather().getPressure()))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(weather -> {
-                            Log.e("TAg", "weather = " + weather);
-                            weatherList.add(weather);
+                .subscribe(mainInfoList -> {
+                            Log.e("TAg", "mainfoList = " + mainInfoList);
+                            Log.e("TAg", "mainfoList.size() = " + mainInfoList.size());
+                            if (mainInfoList.isEmpty()) {
+                                view.hideProgress();
+                            } else {
+                                fetchListWeatherByCity(input, mainInfoList);
+                            }
                         },
-                        this::onFail,
-                        () -> {
-                            showWeatherList(weatherList);
-                            saveResponse(input, weatherList);
-                        });
-        disposables.add(cityAndWeatherDisposable);
+                        this::onFail));
+    }
+
+    private void fetchListWeatherByCity(String input, List<CityResponseWrapper.MainInfo> mainInfoList) {
+        weatherDisposable = Observable.fromIterable(mainInfoList)
+                .forEach(city -> weatherCitiesInteractor.getWeatherByCityName(city.getCity().getName())
+                        .map(weatherResponseWrapper -> new Weather(weatherResponseWrapper.getCityName(),
+                                weatherResponseWrapper.getWeather().getTemperature(),
+                                weatherResponseWrapper.getWeather().getHumidity(),
+                                weatherResponseWrapper.getWeather().getPressure()))
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(weather -> weatherList.add(weather),
+                                this::onFail,
+                                () -> {
+                                    showWeatherList(weatherList);
+                                    saveResponse(input, weatherList);
+                                }));
+        disposables.add(weatherDisposable);
     }
 
     public void destroy() {
@@ -72,18 +80,20 @@ public class WeatherCitiesPresenter {
     }
 
     private void onFail(Throwable e) {
-        Log.e("TAg", "e = " + e.getLocalizedMessage());
+        Log.e("TAg", "error when fetch weather", e);
         view.hideProgress();
         view.showError(e.getLocalizedMessage());
     }
 
     private void showWeatherList(List<Weather> weatherList) {
         Log.e("TAg", "weatherList = " + weatherList);
+        Log.e("TAg", "weatherList.size() = " + weatherList.size());
         view.hideProgress();
         view.showWeatherList(weatherList);
     }
 
     private void saveResponse(String input, List<Weather> weatherList) {
+        deleteAllWeathers();
         disposables.add(Observable.fromIterable(weatherList)
                 .map(weather -> {
                     WeatherEntity weatherEntity = new WeatherEntity();
@@ -99,15 +109,13 @@ public class WeatherCitiesPresenter {
                 .ignoreElement()
                 .andThen(weatherCitiesInteractor.saveInputString(input))
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> Log.e("TAg", "success save to cache"),
-                        e -> Log.e("TAg", "error when save to cache " + e.getLocalizedMessage())));
+                .subscribe(() -> Log.e("TAg", "success save to cache "),
+                        e -> Log.e("TAg", "error when save to cache ", e)));
     }
 
     private void deleteAllWeathers() {
         disposables.add(weatherCitiesInteractor.deleteAllWeathers()
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe());
     }
 
@@ -125,34 +133,29 @@ public class WeatherCitiesPresenter {
                         .toObservable(),
                 weatherCitiesInteractor.getSavedInputString(),
                 (weatherList, savedInput) -> {
+                    Log.e("TAg", "getAllWeathersLastHour() savedInput = " + savedInput);
+                    Log.e("TAg", "getAllWeathersLastHour() weatherList = " + weatherList.size());
                     if (weatherList != null && !weatherList.isEmpty()) {
-                        Log.e("TAg", "fromCache = " + weatherList);
+                        Log.e("TAg", "getAllWeathersLastHour = " + weatherList);
                         showWeatherList(weatherList);
                     } else {
-                        Log.e("TAg", "go request = " + weatherList);
+                        Log.e("TAg", "do request = ");
                         deleteAllWeathers();
-                        findCities(savedInput);
+                        if (savedInput.length() > 2) {
+                            findCities(savedInput);
+                        }
                     }
                     return savedInput;
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::setInputString));
+                .subscribe(this::setInputString, e -> Log.e("TAg", "error when retrieve cache ", e),
+                        () -> Log.e("TAg", "getAllWeathersLastHour onComplete() ")));
     }
 
     private void setInputString(String savedInput) {
+        Log.e("TAg", "SETINPUTSTRING = " + savedInput);
+        view.hideProgress();
         view.listenInputAndSetText(savedInput);
-    }
-
-    private void f() {
-        weatherCitiesInteractor.getAll()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(weatherEntities -> {
-                    Log.e("TAg", "all from cache = " + weatherEntities);
-
-                }, t -> {
-                    Log.e("TAg", "error all = " + t.getLocalizedMessage());
-                });
     }
 }

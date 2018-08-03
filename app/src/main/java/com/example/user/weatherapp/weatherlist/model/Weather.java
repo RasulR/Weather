@@ -40,6 +40,16 @@ public class Weather {
         return Double.compare(weather.temperature, temperature) == 0 &&
                 humidity == weather.humidity &&
                 Double.compare(weather.pressure, pressure) == 0 &&
-                Objects.equals(cityName, weather.cityName);
+                cityName.equals(weather.cityName);
+    }
+
+    @Override
+    public String toString() {
+        return "Weather{" +
+                "cityName='" + cityName + '\'' +
+                ", temperature=" + temperature +
+                ", humidity=" + humidity +
+                ", pressure=" + pressure +
+                '}';
     }
 }

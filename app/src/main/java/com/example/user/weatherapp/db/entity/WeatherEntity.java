@@ -54,4 +54,5 @@ public class WeatherEntity {
     public void setFetchedDate(long fetchedDate) {
         this.fetchedDate = fetchedDate;
     }
+
 }

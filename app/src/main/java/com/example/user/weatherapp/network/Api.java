@@ -11,6 +11,6 @@ public interface Api {
     @GET("json?types=(cities)&components=country:kz")
     Observable<CityResponseWrapper> getCityByName(@Query("input") String input);
 
-    @GET("weather?units=metric&lang=ru")
+    @GET("weather?units=metric")
     Observable<WeatherResponseWrapper> getWeatherByCity(@Query("q") String cityName);
 }

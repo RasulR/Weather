@@ -4,19 +4,21 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     tools:context=".weatherlist.WeatherCitiesActivity"
     android:orientation="vertical">
 
     <FrameLayout
+        android:clipToPadding="false"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycler"
+            android:padding="16dp"
+            android:clipToPadding="false"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="match_parent" />
 
         <ProgressBar
             android:id="@+id/progress"
@@ -31,7 +33,7 @@
         android:id="@+id/ed_search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_margin="10dp"
         android:hint="@string/input_city_name" />
 
 </LinearLayout>
